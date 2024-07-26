@@ -256,7 +256,8 @@ class CobotConnectorServer:
             isSimulated=isSimulated
         )
 
-        asyncio.create_task(asyncTryAndLogExceptionOnError(self._connectToCobot))
+        asyncio.create_task(asyncTryAndLogExceptionOnError(self.connectToCobotAndInitialize,
+                                                           assertFromScratch=True))
 
         self._positionsClient = ToolPositionsClient()
 
@@ -846,9 +847,23 @@ class CobotConnectorServer:
         while True:
             await asyncio.sleep(1.)
 
-    async def _connectToCobot(self):
-        assert self._state in (TargetingState.DISCONNECTED, TargetingState.UNINITIALIZED)
-        assert not self._cobotConnectedEvent.is_set()
+    async def connectToCobotAndInitialize(self, assertFromScratch: bool = False):
+        logger.info('connecting to cobot and initializing')
+
+        if self._state not in (TargetingState.DISCONNECTED, TargetingState.UNINITIALIZED):
+            if assertFromScratch:
+                raise RuntimeError('Already connected and initialized')
+            else:
+                logger.warning('Already connected and initialized')
+                return
+
+        if assertFromScratch:
+            assert not self._cobotConnectedEvent.is_set()
+
+        await asyncio.sleep(0.1)
+        if not self._cobotClient.isConnected and not self._cobotClient.isConnecting.locked():
+            await self._cobotClient.connect()
+
         await self._cobotClient.connectedEvent.wait()
 
         if True:
@@ -857,26 +872,37 @@ class CobotConnectorServer:
 
             logger.info(f'Robot ID: {await self._cobotClient.getRobotID()}')
 
-        if self._cobotClient.isPoweredOn:
+        if self._cobotClient.sessionHasStarted:
+            if assertFromScratch:
+                raise RuntimeError('Session already started')
+        else:
+            logger.info('Starting session')
+            await self.startSession()
+
+        if assertFromScratch and self._cobotClient.isPoweredOn:
             # may have been powered on by previous session (?)
+            # (should only happen during simulator testing when watchdog is disabled)
             logger.info('Powering off')
             await self._cobotClient.powerOff()
             await asyncio.sleep(1.)
 
-        logger.info('Starting session')
-        await self.startSession()
+        baseTracker = self._cobotClient.BaseTracker.Right  # TODO: let client set rather than hardcoding here
+        if await self._cobotClient.getActiveBaseTracker() != baseTracker:
+            await self._cobotClient.setActiveBaseTracker(baseTracker)
 
-        await self._cobotClient.setActiveBaseTracker(
-            self._cobotClient.BaseTracker.Right)  # TODO: debug, delete and let client set
+        if not self._cobotClient.isPoweredOn:
+            logger.info('Powering on')
+            await self._cobotClient.powerOn()
+            await self._cobotClient.poweredOnEvent.wait()
 
-        logger.info('Powering on')
-        await self._cobotClient.powerOn()
-        await self._cobotClient.poweredOnEvent.wait()
-
-        logger.info('Homing')
-        await self._cobotClient.startHoming()
-        # TODO: add simultaneous await for homing error, stop / retry init
-        await self._cobotClient.homedEvent.wait()
+        if self._cobotClient.isHomed:
+            if assertFromScratch:
+                raise RuntimeError('Already homed')
+        else:
+            logger.info('Homing')
+            await self._cobotClient.startHoming()
+            # TODO: add simultaneous await for homing error, stop / retry init
+            await self._cobotClient.homedEvent.wait()
 
         match await self._cobotClient.getActiveBaseTracker():
             case self._cobotClient.BaseTracker.Left:
@@ -1721,6 +1747,7 @@ class CobotConnectorServer:
 
         if (matchesSig('sigConnectedChanged') and self._cobotClient.isConnected and not
                 (self._cobotClient.isEnabled or self._cobotClient.isPoweredOn or self._cobotClient.isHomed)) or \
+                (matchesSig('sigControlIsLockedChanged') and not self._cobotClient.controlIsLocked) or \
                 (matchesSig('sigEnabledChanged') and not self._cobotClient.isEnabled) or \
                 (matchesSig('sigPoweredChanged') and not self._cobotClient.isPoweredOn) or \
                 (matchesSig('sigHomedChanged') and not self._cobotClient.isHomed):
@@ -1820,6 +1847,7 @@ class CobotConnectorServer:
         if prevState in (TargetingState.DISCONNECTED, TargetingState.UNINITIALIZED):
             if self._cobotClient.sessionHasStarted and \
                     self._cobotClient.isEnabled and \
+                    self._cobotClient.controlIsLocked and \
                     self._cobotClient.isPoweredOn and \
                     self._cobotClient.isHomed:
                 self._changeToState(TargetingState.IDLE)
@@ -3026,8 +3054,9 @@ class CobotConnectorServer:
             """
             Probably skipping initialization this time due to having already been initialized during a previous connection
             """
-            assert self._activeCartTrackerKey is not None  # should have been set during previous initialization
-            self._cobotConnectedEvent.set()
+            if self._activeCartTrackerKey is not None:
+                # if previously initialized, cart tracker key should have been set then
+                self._cobotConnectedEvent.set()
 
     def _onClientSignaled(self, signalKey: str):
         self._updateState([signalKey])

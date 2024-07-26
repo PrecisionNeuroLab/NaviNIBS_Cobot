@@ -459,6 +459,39 @@ class CobotPowerControlEntry(CobotButtonControlEntry):
 
 
 @attrs.define(kw_only=True)
+class CobotConnectAndInitializeControlEntry(CobotButtonControlEntry):
+    _key: str = 'connectAndInitialize'
+    _label: str | None = 'Connection'
+
+    def __attrs_post_init__(self):
+        super().__attrs_post_init__()
+        self._controller.cobotClient.sigStateChanged.connect(self._updateText)
+        self._updateText()
+
+    def _updateText(self):
+        match self._controller.cobotClient.state:
+            case TargetingState.DISCONNECTED:
+                self._wdgt.setText('Connect and initialize')
+
+            case TargetingState.UNINITIALIZED:
+                self._wdgt.setText('Initialize')
+
+            case _:
+                self._wdgt.setText('Disconnect')
+
+    def _onButtonPressed(self):
+        match self._controller.cobotClient.state:
+            case TargetingState.DISCONNECTED:
+                self._createTaskAndCatchExceptions(self._controller.cobotClient.connectToCobotAndInitialize())
+
+            case TargetingState.UNINITIALIZED:
+                self._createTaskAndCatchExceptions(self._controller.cobotClient.connectToCobotAndInitialize())
+
+            case _:
+                self._createTaskAndCatchExceptions(self._controller.cobotClient.disconnectCobotClient())
+
+
+@attrs.define(kw_only=True)
 class CobotStopControlEntry(CobotButtonControlEntry):
     _key: str = 'stop'
     _label: str | None = 'Stop'

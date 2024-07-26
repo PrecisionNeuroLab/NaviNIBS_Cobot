@@ -407,6 +407,9 @@ class CobotConnectorClient:
     async def disconnectCobotClient(self):
         await self._callRemoteClientMethodAsync_async('disconnect')
 
+    async def connectToCobotAndInitialize(self):
+        await self._connector.callAsync_async('connectToCobotAndInitialize')
+
     async def setSimulatedForceValue(self, force: int):
         """
         Note: only valid for simulated Cobot.

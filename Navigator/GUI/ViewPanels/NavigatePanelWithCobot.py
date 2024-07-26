@@ -67,10 +67,17 @@ class BasicControlsWidget:
         )
         innerLayout.addWidget(self._entries['estop'].wdgt)
 
-        self._entries['stop'] = cw.CobotStopControlEntry(
+        self._entries['connectAndInitialize'] = cw.CobotConnectAndInitializeControlEntry(
             controller=self._controller
         )
-        innerLayout.addWidget(self._entries['stop'].wdgt)
+        innerLayout.addWidget(self._entries['connectAndInitialize'].wdgt)
+
+        if False:
+            self._entries['stop'] = cw.CobotStopControlEntry(
+                controller=self._controller
+            )
+            innerLayout.addWidget(self._entries['stop'].wdgt)
+
 
         innerLayout = QtWidgets.QFormLayout()
         innerLayout.setContentsMargins(0, 0, 0, 0)
