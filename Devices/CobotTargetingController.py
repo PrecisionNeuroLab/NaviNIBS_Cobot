@@ -126,7 +126,7 @@ class CobotTargetingController:
     async def _onSubjectTrackerKeyMaybeChanged(self):
         logger.debug('_onSubjectTrackerKeyMaybeChanged')
         await self.cobotClient.connectedToServerEvent.wait()
-        subjectTrackerKey = self.session.tools.subjectTracker.key
+        subjectTrackerKey = self.session.tools.subjectTracker.trackerKey
         logger.debug(f'Setting subject tracker key to {subjectTrackerKey}')
         await self._cobotConnectorClient.setSubjectTrackerKey(subjectTrackerKey)
         logger.debug('Set subject tracker key')
@@ -144,12 +144,12 @@ class CobotTargetingController:
         if self._activeCoilTool is not None:
             self._activeCoilTool.sigItemChanged.disconnect(self._onCoilToolChanged)
 
-        coilTool = self.session.tools[self.targetingCoordinator.activeCoilKey]
-        self._activeCoilTool = coilTool
-
-        coilTool.sigItemChanged.connect(self._onCoilToolChanged)
-
-        self._onCoilToolChanged(key=coilTool.key)
+        if self.targetingCoordinator.activeCoilKey is None:
+            self._activeCoilTool = None
+        else:
+            coilTool = self.session.tools[self.targetingCoordinator.activeCoilKey]
+            coilTool.sigItemChanged.connect(self._onCoilToolChanged)
+            self._onCoilToolChanged(key=coilTool.key)
 
     def _onCoilToolChanged(self, key: str, changedAttribs: list[str] | None = None):
         asyncio.create_task(asyncTryAndLogExceptionOnError(self._onCoilToolChanged_async, changedAttribs=changedAttribs))
@@ -158,19 +158,25 @@ class CobotTargetingController:
         logger.debug('_onCoilToolChanged')
         await self.cobotClient.connectedToServerEvent.wait()
 
-        coilTool = self.session.tools[self.targetingCoordinator.activeCoilKey]
+        if self.targetingCoordinator.activeCoilKey is None:
+            await self._cobotConnectorClient.setCoilTrackerKey(None)
+            await self._cobotConnectorClient.setCoilMeshPath(None)
+            await self._cobotConnectorClient.setCoilMeshToToolTransf(None)
+            await self._cobotConnectorClient.setCoilToolToTrackerTransf(None)
+        else:
+            coilTool = self.session.tools[self.targetingCoordinator.activeCoilKey]
 
-        if changedAttribs is None or 'key' in changedAttribs:
-            await self._cobotConnectorClient.setCoilTrackerKey(coilTool.key)
+            if changedAttribs is None or 'key' in changedAttribs:
+                await self._cobotConnectorClient.setCoilTrackerKey(coilTool.trackerKey)
 
-        if changedAttribs is None or 'toolStlFilepath' in changedAttribs:
-            await self._cobotConnectorClient.setCoilMeshPath(coilTool.toolStlFilepath)
+            if changedAttribs is None or 'toolStlFilepath' in changedAttribs:
+                await self._cobotConnectorClient.setCoilMeshPath(coilTool.toolStlFilepath)
 
-        if changedAttribs is None or 'toolStlToToolTransf' in changedAttribs:
-            await self._cobotConnectorClient.setCoilMeshToToolTransf(coilTool.toolStlToToolTransf)
+            if changedAttribs is None or 'toolStlToToolTransf' in changedAttribs:
+                await self._cobotConnectorClient.setCoilMeshToToolTransf(coilTool.toolStlToToolTransf)
 
-        if changedAttribs is None or 'toolToTrackerTransf' in changedAttribs:
-            await self._cobotConnectorClient.setCoilToolToTrackerTransf(coilTool.toolToTrackerTransf)
+            if changedAttribs is None or 'toolToTrackerTransf' in changedAttribs:
+                await self._cobotConnectorClient.setCoilToolToTrackerTransf(coilTool.toolToTrackerTransf)
 
     async def _maybeDoExtraSetupForSimulatedCobot(self):
         await self.cobotClient.connectedToServerEvent.wait()
