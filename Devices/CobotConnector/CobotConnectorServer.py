@@ -5,6 +5,7 @@ import attrs
 import json
 import logging
 import numpy as np
+from packaging.version import Version
 import pytransform3d.rotations as ptr
 import pytransform3d.transformations as ptt
 import pyvista as pv
@@ -1008,12 +1009,13 @@ class CobotConnectorServer:
             try:
                 self.__lastMeasuredForce = await self._cobotClient.getForce()
 
-                nSinceRawValuesCheck += 1
-                if nSinceRawValuesCheck > checkRawValuesEveryN:
-                    nSinceRawValuesCheck = 1
-                    rawValues = await self._cobotClient.getCoilRawValues()
-                    self.__lastRawCoilIDValue = rawValues['id']
-                    self.__lastRawForceValue = rawValues['contact']
+                if Version('.'.join(str(x) for x in self._cobotClient.protocolVersion)) >= Version('2.2'):
+                    nSinceRawValuesCheck += 1
+                    if nSinceRawValuesCheck > checkRawValuesEveryN:
+                        nSinceRawValuesCheck = 1
+                        rawValues = await self._cobotClient.getCoilRawValues()
+                        self.__lastRawCoilIDValue = rawValues['id']
+                        self.__lastRawForceValue = rawValues['contact']
 
                 nSinceSensitivityCheck += 1
                 if nSinceSensitivityCheck > checkSensitivityEveryN:

@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import attrs
 import logging
+from packaging.version import Version
 
 import qtawesome as qta
 from qtpy import QtWidgets, QtGui
@@ -108,10 +109,17 @@ class CobotStatusWidget:
             ),
             cw.CobotForceStatusEntry(),
             cw.CobotForceLastCheckedStatusEntry(),
-            cw.CobotRawCoilIDValueStatusEntry(),
-            cw.CobotRawForceValueStatusEntry(),
-            cw.CobotSensitivityEntry(),
         ]
+
+        if Version('.'.join(str(x) for x in self._controller.cobotClient.cobotProtocolVersion)) >= Version('2.2'):
+            items.extend([
+                cw.CobotRawCoilIDValueStatusEntry(),
+                cw.CobotRawForceValueStatusEntry(),
+            ])
+
+        items.append(
+            cw.CobotSensitivityEntry()
+        )
 
         for deviceName in ('COBOT', 'ARM'):
             for index in range(6):

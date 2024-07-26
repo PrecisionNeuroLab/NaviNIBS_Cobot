@@ -211,6 +211,10 @@ class CobotConnectorClient:
         return self._getRemoteClientAttr('isInProtectiveStop')
 
     @property
+    def cobotProtocolVersion(self):
+        return self._getRemoteClientAttr('protocolVersion')
+
+    @property
     def targetLabel(self):
         return self._connector.get('targetLabel')
 
