@@ -10,6 +10,7 @@ description = "NaviNIBS addon for Cobot control"
 homepage = "https://github.com/PrecisionNeuroLab/NaviNIBS"
 repository = "https://github.com/PrecisionNeuroLab/NaviNIBS_Cobot"
 documentation = "https://precisionneurolab.github.io/NaviNIBS_Documentation"
+readme = "README.md"
 authors = ["Christopher C. Cline <chriscline@users.noreply.github.com>"]
 license = "LGPL-3.0-only"
 packages = [
