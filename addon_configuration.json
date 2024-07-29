@@ -1,6 +1,6 @@
 {
   "key": "NaviNIBS_Cobot",
-  "addonVersion": "0.1.1",
+  "addonVersion": "0.1.2",
   "MainViewPanels": {
     "CobotDebugPanel": {
       "ClassName": "CobotDebugPanel",
