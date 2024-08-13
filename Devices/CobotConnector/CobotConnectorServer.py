@@ -1314,6 +1314,8 @@ class CobotConnectorServer:
 
         self._positionsClient.sigLatestPositionsChanged.connect(lambda: positionsChangedEvent.set())
 
+        lastWarnedAboutTrackerToToolTransform: float | None = None
+
         while True:
             await positionsChangedEvent.wait()
             await asyncio.sleep(0.05)  # TODO: add parameter rate limit rather than hardcoding here
@@ -1347,7 +1349,11 @@ class CobotConnectorServer:
             angleDeviation = np.rad2deg(ptr.axis_angle_from_matrix(cobotCoilToolToTrackerTransf[:3,:3]))[-1]
             if distDeviation > maxDistDeviation or angleDeviation > maxAngleDeviation:
                 # don't let situations like user error with selecting wrong TMS coil to cause extreme cobot shifts. Actual error between cobot's idea of the coil and actual position should never be very large.
-                logger.warning(f'coil tracker to cobot coil tool transform is too far from expected value: {cobotCoilToolToTrackerTransf}')
+                warnRateLimit = 10.  # in seconds
+                if lastWarnedAboutTrackerToToolTransform is None or \
+                        time.time() - lastWarnedAboutTrackerToToolTransform > warnRateLimit:
+                    logger.warning(f'coil tracker to cobot coil tool transform is too far from expected value: {cobotCoilToolToTrackerTransf}')
+                    lastWarnedAboutTrackerToToolTransform = time.time()
                 continue
 
             if False:
