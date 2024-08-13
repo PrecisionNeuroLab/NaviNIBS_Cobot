@@ -14,9 +14,9 @@ import CobotClient
 import asyncio
 import atexit
 import enum
+import struct
 import attrs
 import logging
-import struct
 import time
 import pyigtl
 import NaviNIBS.util.Asyncio

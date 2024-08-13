@@ -1018,7 +1018,7 @@ class CobotConnectorServer:
             try:
                 self.__lastMeasuredForce = await self._cobotClient.getForce()
 
-                if Version('.'.join(str(x) for x in self._cobotClient.protocolVersion)) >= Version('2.2'):
+                if Version('.'.join(str(x) for x in self._cobotClient.controllerVersion)) >= Version('2.2'):
                     nSinceRawValuesCheck += 1
                     if nSinceRawValuesCheck > checkRawValuesEveryN:
                         nSinceRawValuesCheck = 1

@@ -215,6 +215,14 @@ class CobotConnectorClient:
         return self._getRemoteClientAttr('protocolVersion')
 
     @property
+    def cobotControllerVersion(self):
+        return self._getRemoteClientAttr('controllerVersion')
+
+    @property
+    def cobotVersion(self):
+        return self._getRemoteClientAttr('robotVersion')
+
+    @property
     def targetLabel(self):
         return self._connector.get('targetLabel')
 

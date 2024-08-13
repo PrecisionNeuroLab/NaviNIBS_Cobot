@@ -111,7 +111,7 @@ class CobotStatusWidget:
             cw.CobotForceLastCheckedStatusEntry(),
         ]
 
-        if Version('.'.join(str(x) for x in self._controller.cobotClient.cobotProtocolVersion)) >= Version('2.2'):
+        if Version('.'.join(str(x) for x in self._controller.cobotClient.cobotControllerVersion)) >= Version('2.2'):
             items.extend([
                 cw.CobotRawCoilIDValueStatusEntry(),
                 cw.CobotRawForceValueStatusEntry(),
