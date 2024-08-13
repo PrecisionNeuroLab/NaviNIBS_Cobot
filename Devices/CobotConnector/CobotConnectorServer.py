@@ -31,6 +31,7 @@ from NaviNIBS_Cobot.Devices.CobotConnector.CobotActionSequence import CobotActio
 from NaviNIBS.Devices.ToolPositionsClient import ToolPositionsClient, TimestampedToolPosition
 from NaviNIBS.util import exceptionToStr
 from NaviNIBS.util.Asyncio import asyncWaitWithCancel, asyncTryAndLogExceptionOnError
+from NaviNIBS.util.logging import createLogFileHandler
 from NaviNIBS.util.numpy import array_equalish
 from NaviNIBS.util.Signaler import Signal
 from NaviNIBS.util.Transforms import composeTransform, concatenateTransforms, invertTransform, applyTransform
@@ -81,6 +82,9 @@ class CobotConnectorServer:
     If set to None, will be automatically determined based on IP. 
     If IP is set to '127.0.0.1' or 'localhost', isSimulated will be set to True. Else it will be set to False.
     """
+
+    _logFilepath: str | None = None
+    _logFileHandler: logging.FileHandler = attrs.field(init=False)
 
     _cobotSessionNameSuffix: str | None = None
     _doTrackCobotDevicePositions: bool = True
@@ -238,7 +242,12 @@ class CobotConnectorServer:
     sigJointPositionLimitsChanged: Signal = attrs.field(init=False, factory=Signal)
 
     def __attrs_post_init__(self):
+        if self._logFilepath is not None:
+            self._logFileHandler = createLogFileHandler(self._logFilepath)
+            logging.getLogger('').addHandler(self._logFileHandler)
+
         logger.info(f'Initializing {self.__class__.__name__}')
+
         self._connector = ZMQConnectorServer(
             obj=self,
             reqRepPort=self._cmdPort,

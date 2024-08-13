@@ -14,6 +14,7 @@ if tp.TYPE_CHECKING:
     from NaviNIBS_Cobot.Navigator.Model.CobotConfiguration import CobotControl
 
 from NaviNIBS.util.Asyncio import asyncTryAndLogExceptionOnError
+from NaviNIBS.util.logging import getLogFilepath
 from NaviNIBS.Navigator.Model.Session import Session
 from NaviNIBS.Navigator.Model.Tools import CoilTool
 from NaviNIBS.util.ZMQConnector import ZMQConnectorClient
@@ -71,10 +72,12 @@ class CobotTargetingController:
 
     def _startCobotConnectorProc(self):
         logger.info('Starting cobotConnectorServer process')
+        kwargs = self._connectorServerKwargs.copy()
+        kwargs['logFilepath'] = getLogFilepath(self.session)
         self._cobotConnectorProc = mp.Process(
             target=CobotConnectorServer.createAndRun,
             name='CobotConnector',
-            kwargs=self._connectorServerKwargs
+            kwargs=kwargs
         )
         self._cobotConnectorProc.start()
 
