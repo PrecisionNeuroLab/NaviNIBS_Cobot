@@ -1898,11 +1898,16 @@ class CobotConnectorServer:
 
             case TargetingState.MOVING |\
                     TargetingState.MOVED:
-                if True:
-                    # for stopContact to work correctly (i.e. send a ICoilRetracted message on completion), we actually need to briefly turn on contact before stopping contact here
-                    await self._cobotClient.startContact()
-                await self._cobotClient.stopContact()
-                nextState = TargetingState.ALIGNING_RETRACTING
+                if not self._isTryingToContact:
+                    if True:
+                        # for stopContact to work correctly (i.e. send a ICoilRetracted message on completion), we actually need to briefly turn on contact before stopping contact here
+                        await self._cobotClient.startContact()
+                    await self._cobotClient.stopContact()
+                    nextState = TargetingState.ALIGNING_RETRACTING
+                else:
+                    # note: this will start moving directly to next target;
+                    # caller should make sure this will not cause problems
+                    nextState = TargetingState.MOVING
 
             case TargetingState.MOVED_FROZEN:
                 # no guarantee that the target is still nearby, so don't allow tracking
