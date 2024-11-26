@@ -98,6 +98,7 @@ async def test_enableCobotAddon(navigatorGUIWithoutSession: NavigatorGUI,
         #                     os.path.join(screenshotsDataSourcePath, 'CobotSetup_AddonAdded.png'),
         #                     doAssertEqual=utils.doAssertScreenshotsEqual)
 
+        await utils.waitForever()  # TODO: debug, delete
         raise NotImplementedError  # TODO: edit IP address if needed
 
         # equivalent to clicking save button
@@ -343,6 +344,7 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
     ctrl = cobotNavPanel._cobotControlWdgt._trackingControlsWdgt._entries['track']
     assert isinstance(ctrl, CobotTrackTargetControlEntry)
     ctrl._wdgt.click()
+    ctrl_track = ctrl
 
     await asyncio.sleep(5.)
     assert cobotNavPanel._controller.cobotClient.state == TargetingState.ALIGNED_RETRACTED
@@ -359,6 +361,7 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
     ctrl = cobotNavPanel._cobotControlWdgt._contactControlsWdgt._entries['contact']
     assert isinstance(ctrl, CobotContactControlEntry)
     ctrl._wdgt.click()
+    ctrl_contact = ctrl
 
     await asyncio.sleep(10.)
     assert cobotNavPanel._controller.cobotClient.state == TargetingState.ALIGNED_CONTACTING
@@ -373,8 +376,13 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
 
 
     # TODO: retract from target and screenshot
+    ctrl_contact._wdgt.click()
+    await asyncio.sleep(5.)
 
     # TODO: stop aligning from target and screenshot
+    ctrl_track._wdgt.click()
+    await asyncio.sleep(5.)
+
 
 
 @pytest.mark.asyncio
