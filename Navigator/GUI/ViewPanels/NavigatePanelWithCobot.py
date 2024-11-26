@@ -526,6 +526,7 @@ class NavigatePanelWithCobot(NavigatePanel):
                 View = CobotWorkspaceAlignedView
                 kwargs.setdefault('title', 'Cobot Workspace (Z)')
                 kwargs.setdefault('alignCameraTo', 'tool-CobotWorkspace+X')
+                kwargs.setdefault('alignCameraOffset', (0, 0, 40))
                 kwargs.setdefault('position', 'bottom')
                 kwargs.setdefault('positionRelativeTo', self._views['Crosshairs-X'].dock)
             case 'CobotWorkspace-Y':
