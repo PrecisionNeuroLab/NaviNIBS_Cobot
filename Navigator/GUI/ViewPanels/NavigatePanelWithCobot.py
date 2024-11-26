@@ -327,11 +327,11 @@ class ActionSequencesControlsWidget:
             controller=self._controller
         )
 
-        if False:
+        if True:
+            outerLayout.addWidget(self._entries['cancelActionSequences'].wdgt)
             wdgt = QtWidgets.QWidget()
             wdgt.setLayout(QtWidgets.QVBoxLayout())
             wdgt.layout().setContentsMargins(0, 0, 0, 0)
-            wdgt.layout().addWidget(self._entries['cancelActionSequences'].wdgt)
             wdgt.layout().addWidget(self._entries['actionSequences'].wdgt)
 
             collapsibleSection = QCollapsibleSection('Pending action sequences',
@@ -378,6 +378,7 @@ class ChangingTargetsControlsWidget:
         container = QtWidgets.QGroupBox('Distant target change')
         outerLayout.addWidget(container)
         formLayout = QtWidgets.QFormLayout()
+        formLayout.setContentsMargins(0, 0, 0, 0)
         container.setLayout(formLayout)
 
         self._entries['distantChangeRetractMode'] = cw.CobotTargetChangeDistantRetractMode(
