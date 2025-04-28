@@ -6,11 +6,11 @@ import attrs
 import datetime as dt
 import logging
 import multiprocessing as mp
-import typing as tp
+from typing import TYPE_CHECKING
 
 from NaviNIBS_Cobot.Devices.CobotConnector.CobotConnectorClient import CobotConnectorClient
 from NaviNIBS_Cobot.Devices.CobotConnector.CobotConnectorServer import CobotConnectorServer
-if tp.TYPE_CHECKING:
+if TYPE_CHECKING:
     from NaviNIBS_Cobot.Navigator.Model.CobotConfiguration import CobotControl
 
 from NaviNIBS.util.Asyncio import asyncTryAndLogExceptionOnError
