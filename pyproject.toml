@@ -5,7 +5,7 @@ classifiers = [
 
 [tool.poetry]
 name = "NaviNIBS_Cobot"
-version = "0.1.4"
+version = "0.1.5"
 description = "NaviNIBS addon for Cobot control"
 homepage = "https://github.com/PrecisionNeuroLab/NaviNIBS"
 repository = "https://github.com/PrecisionNeuroLab/NaviNIBS_Cobot"
