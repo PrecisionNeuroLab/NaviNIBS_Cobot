@@ -13,6 +13,7 @@ from NaviNIBS.util.GUI.QScrollContainer import QScrollContainer
 from NaviNIBS.Navigator.GUI.ViewPanels.MainViewPanelWithDockWidgets import MainViewPanelWithDockWidgets
 from NaviNIBS.util.GUI.ErrorDialog import asyncTryAndRaiseDialogOnError
 from NaviNIBS.util.GUI.Dock import Dock, DockArea
+from NaviNIBS.util.GUI.Icons import getIcon
 
 from NaviNIBS_Cobot.Devices.CobotTargetingController import CobotTargetingController
 from NaviNIBS_Cobot.Navigator.GUI.ViewPanels import CobotWidgets as cw
@@ -193,7 +194,7 @@ class CobotControlsWidget:
 class CobotDebugPanel(MainViewPanelWithDockWidgets):
     _key: str = 'CobotDebug'
     _label: str = 'Cobot info'
-    _icon: QtGui.QIcon = attrs.field(init=False, factory=lambda: qta.icon('mdi6.robot-industrial'))
+    _icon: QtGui.QIcon = attrs.field(init=False, factory=lambda: getIcon('mdi6.robot-industrial'))
 
     _statusWdgt: CobotStatusWidget = attrs.field(init=False)
     _controlsWdgt: CobotControlsWidget = attrs.field(init=False)
