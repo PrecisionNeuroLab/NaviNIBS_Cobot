@@ -30,6 +30,7 @@ from NaviNIBS_Cobot.Devices.CobotConnector import (
     TargetChangeContactMode,
 )
 from NaviNIBS_Cobot.Navigator.GUI.ViewPanels.CobotWidgets import (
+    CobotMoveToParkControlEntry,
     CobotMoveToWelcomeControlEntry,
     CobotTrackTargetControlEntry,
     CobotContactControlEntry
@@ -90,13 +91,10 @@ async def test_enableCobotAddon(navigatorGUIWithoutSession: NavigatorGUI,
 
         await asyncio.sleep(5.)
 
-        screenshotPath = os.path.join(sessionPath, 'CobotSetup_AddonAdded.png')
-        utils.captureScreenshot(navigatorGUI, screenshotPath)
-        pyperclip.copy(str(screenshotPath))
-
-        # utils.compareImages(screenshotPath,
-        #                     os.path.join(screenshotsDataSourcePath, 'CobotSetup_AddonAdded.png'),
-        #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+        await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                                sessionPath=sessionPath,
+                                                screenshotName='CobotSetup_AddonAdded',
+                                                screenshotsDataSourcePath=screenshotsDataSourcePath)
 
         await utils.waitForever()  # TODO: debug, delete
         raise NotImplementedError  # TODO: edit IP address if needed
@@ -148,13 +146,10 @@ async def test_enableCobotAddon(navigatorGUIWithoutSession: NavigatorGUI,
 
         await asyncio.sleep(1.)
 
-        screenshotPath = os.path.join(sessionPath, 'CobotSetup_AddonAdded.png')
-        utils.captureScreenshot(navigatorGUI, screenshotPath)
-        pyperclip.copy(str(screenshotPath))
-
-        # utils.compareImages(screenshotPath,
-        #                     os.path.join(screenshotsDataSourcePath, 'CobotSetup_AddonAdded.png'),
-        #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+        await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                                sessionPath=sessionPath,
+                                                screenshotName='CobotSetup_AddonAdded',
+                                                screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     from addons.NaviNIBS_Cobot.Navigator.GUI.ViewPanels.CobotDebugPanel import CobotDebugPanel
 
@@ -164,13 +159,10 @@ async def test_enableCobotAddon(navigatorGUIWithoutSession: NavigatorGUI,
 
     await asyncio.sleep(1.)
 
-    screenshotPath = os.path.join(sessionPath, 'CobotSetup_ControlPanel.png')
-    utils.captureScreenshot(navigatorGUI, screenshotPath)
-    pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotSetup_ControlPanel.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+    await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                            sessionPath=sessionPath,
+                                            screenshotName='CobotSetup_ControlPanel',
+                                            screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     # make sure that Cobot connected
     assert cobotControlPanel._controller.cobotClient.isConnectedToServer
@@ -190,7 +182,7 @@ async def test_enableCobotAddon(navigatorGUIWithoutSession: NavigatorGUI,
     # equivalent to clicking on corresponding entry in table
     navigatorGUI.toolsPanel._tblWdgt.currentCollectionItemKey = 'CobotCart'
 
-    await navigatorGUI.toolsPanel._toolWdgt._finishedAsyncInit.wait()
+    await navigatorGUI.toolsPanel._toolWdgt.finishedAsyncInit.wait()
 
     # deactivate previous primary coil tool and calibration plate
     navigatorGUI.session.tools['Coil1'].isActive = False
@@ -198,13 +190,10 @@ async def test_enableCobotAddon(navigatorGUIWithoutSession: NavigatorGUI,
 
     await asyncio.sleep(2.)
 
-    screenshotPath = os.path.join(sessionPath, 'CobotSetup_Tools.png')
-    utils.captureScreenshot(navigatorGUI, screenshotPath)
-    pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotSetup_Tools.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+    await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                            sessionPath=sessionPath,
+                                            screenshotName='CobotSetup_Tools',
+                                            screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     # equivalent to clicking save button
     navigatorGUI.manageSessionPanel._onSaveSessionBtnClicked(checked=False)
@@ -250,13 +239,10 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
 
     await asyncio.sleep(15.)
 
-    # screenshotPath = os.path.join(sessionPath, 'CobotNav_NoToolPoses.png')
-    # utils.captureScreenshot(navigatorGUI, screenshotPath)
-    # pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotNav_PreTools.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+    # await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+    #                                         sessionPath=sessionPath,
+    #                                         screenshotName='CobotNav_NoToolPoses',
+    #                                         screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     # should have auto-connected and initialized, and watchdog should not have triggered back to non-idle state
     assert cobotNavPanel._controller.cobotClient.state == TargetingState.IDLE
@@ -266,7 +252,10 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
     simulatedToolsPanel: SimulatedToolsPanel = navigatorGUI._mainViewPanels['SimulatedToolsPanel']
     await simulatedToolsPanel.importPositionsSnapshot(simulatedCobotPositionsPath)
 
-    # TODO: move to park position
+    # move to park position
+    ctrl = cobotNavPanel._cobotControlWdgt._basicControlsWdgt._entries['moveToPark']
+    assert isinstance(ctrl, CobotMoveToParkControlEntry)
+    ctrl._wdgt.click()
 
     await asyncio.sleep(5.)
 
@@ -281,25 +270,19 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
 
     await asyncio.sleep(1.)
 
-    screenshotPath = os.path.join(sessionPath, 'CobotNav_ForceCheckStart.png')
-    utils.captureScreenshot(navigatorGUI, screenshotPath)
-    pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotNav_ForceCheckStart.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+    await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                            sessionPath=sessionPath,
+                                            screenshotName='CobotNav_ForceCheckStart',
+                                            screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     await cobotNavPanel._cobotControlWdgt._contactControlsWdgt._checkForceDlg._simulateCheck()
 
     await asyncio.sleep(1.)
 
-    screenshotPath = os.path.join(sessionPath, 'CobotNav_ForceCheckDone.png')
-    utils.captureScreenshot(navigatorGUI, screenshotPath)
-    pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotNav_ForceCheckDone.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+    await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                            sessionPath=sessionPath,
+                                            screenshotName='CobotNav_ForceCheckDone',
+                                            screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     cobotNavPanel._cobotControlWdgt._contactControlsWdgt._checkForceDlg._wdgt.accept()
 
@@ -317,13 +300,10 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
 
     await asyncio.sleep(5.)
 
-    screenshotPath = os.path.join(sessionPath, 'CobotNav_Park.png')
-    utils.captureScreenshot(navigatorGUI, screenshotPath)
-    pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotNav_Park.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+    await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                            sessionPath=sessionPath,
+                                            screenshotName='CobotNav_Park',
+                                            screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     # move to welcome 1 position and screenshot
     ctrl = cobotNavPanel._cobotControlWdgt._basicControlsWdgt._entries['moveToWelcome']
@@ -332,13 +312,10 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
 
     await asyncio.sleep(5.)
 
-    screenshotPath = os.path.join(sessionPath, 'CobotNav_Welcome1.png')
-    utils.captureScreenshot(navigatorGUI, screenshotPath)
-    pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotNav_Welcome1.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+    await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                            sessionPath=sessionPath,
+                                            screenshotName='CobotNav_Welcome1',
+                                            screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     # align to target and screenshot
     ctrl = cobotNavPanel._cobotControlWdgt._trackingControlsWdgt._entries['track']
@@ -349,13 +326,10 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
     await asyncio.sleep(5.)
     assert cobotNavPanel._controller.cobotClient.state == TargetingState.ALIGNED_RETRACTED
 
-    screenshotPath = os.path.join(sessionPath, 'CobotNav_Aligned.png')
-    utils.captureScreenshot(navigatorGUI, screenshotPath)
-    pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotNav_Aligned.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
+    await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                            sessionPath=sessionPath,
+                                            screenshotName='CobotNav_Aligned',
+                                            screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     # contact target and screenshot
     ctrl = cobotNavPanel._cobotControlWdgt._contactControlsWdgt._entries['contact']
@@ -366,14 +340,10 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
     await asyncio.sleep(10.)
     assert cobotNavPanel._controller.cobotClient.state == TargetingState.ALIGNED_CONTACTING
 
-    screenshotPath = os.path.join(sessionPath, 'CobotNav_Contact.png')
-    utils.captureScreenshot(navigatorGUI, screenshotPath)
-    pyperclip.copy(str(screenshotPath))
-
-    # utils.compareImages(screenshotPath,
-    #                     os.path.join(screenshotsDataSourcePath, 'CobotNav_Contact.png'),
-    #                     doAssertEqual=utils.doAssertScreenshotsEqual)
-
+    await utils.captureAndCompareScreenshot(navigatorGUI=navigatorGUI,
+                                            sessionPath=sessionPath,
+                                            screenshotName='CobotNav_Contact',
+                                            screenshotsDataSourcePath=screenshotsDataSourcePath)
 
     # TODO: retract from target and screenshot
     ctrl_contact._wdgt.click()
