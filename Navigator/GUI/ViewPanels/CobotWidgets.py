@@ -843,6 +843,7 @@ class CobotTrackTargetControlEntry(CobotButtonControlEntry):
         super().__attrs_post_init__()
         self._controller.cobotClient.sigInWorkspaceChanged.connect(self._updateEnabled)
         self._controller.cobotClient.sigTargetAccessibleChanged.connect(self._updateEnabled)
+        self._controller.cobotClient.sigFreedrivingChanged.connect(self._updateEnabled)
         self._controller.cobotClient.sigStateChanged.connect(self._updateEnabled)
         self._controller.cobotClient.sigStateChanged.connect(self._updateText)
         self._updateEnabled()
@@ -850,7 +851,8 @@ class CobotTrackTargetControlEntry(CobotButtonControlEntry):
 
     def _updateEnabled(self):
         enabled = False
-        if self._controller.cobotClient.cachedState not in (TargetingState.UNINITIALIZED,):
+        if self._controller.cobotClient.cachedState not in (TargetingState.UNINITIALIZED,
+                                                            TargetingState.FREEDRIVING):
             if self._controller.cobotClient.targetIsAccessible and self._controller.cobotClient.isInWorkspace:
                 enabled = True
             elif self._controller.cobotClient.cachedState in (
@@ -862,7 +864,8 @@ class CobotTrackTargetControlEntry(CobotButtonControlEntry):
                     TargetingState.ALIGNING_SERVOING,
                     TargetingState.ALIGNING_CONTACTING,
                     TargetingState.ALIGNING_RETRACTING,
-                    TargetingState.MOVING):
+                    TargetingState.MOVING,
+                    TargetingState.MOVED):
                 enabled = True
 
         self._wdgt.setEnabled(enabled)
@@ -898,7 +901,9 @@ class CobotTrackTargetControlEntry(CobotButtonControlEntry):
                 TargetingState.ALIGNING_SERVOING,
                 TargetingState.ALIGNING_CONTACTING,
                 TargetingState.ALIGNING_RETRACTING,
-                TargetingState.MOVING):
+                TargetingState.MOVING,
+                TargetingState.MOVED
+        ):
             self._createTaskAndCatchExceptions(self._controller.stopTrackingTarget())
         else:
             self._createTaskAndCatchExceptions(self._controller.startTrackingTarget())
