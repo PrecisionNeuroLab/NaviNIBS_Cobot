@@ -105,6 +105,10 @@ class CobotStatusWidget:
                 stateChangedSignal='sigServoingChanged',
             ),
             cw.CobotBoolStatusEntry(
+                key='isRetracting',
+                stateChangedSignal='sigServoingChanged',
+            ),
+            cw.CobotBoolStatusEntry(
                 key='freedriveButtonIsPressed',
                 stateChangedSignal='sigFreedriveButtonPressedChanged',
             ),
