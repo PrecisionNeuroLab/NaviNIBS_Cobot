@@ -122,9 +122,10 @@ class CobotStatusWidget:
                 cw.CobotRawForceValueStatusEntry(),
             ])
 
-        items.append(
-            cw.CobotSensitivityEntry()
-        )
+        items.extend([
+            cw.CobotSensitivityEntry(),
+            cw.CobotSpeedEntry(),
+        ])
 
         for deviceName in ('COBOT', 'ARM'):
             for index in range(6):

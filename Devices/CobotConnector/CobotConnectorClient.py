@@ -55,6 +55,7 @@ class CobotConnectorClient:
     sigRawCoilIDValueChanged: Signal = attrs.field(init=False, factory=Signal, repr=False)
     sigRawForceValueChanged: Signal = attrs.field(init=False, factory=Signal, repr=False)
     sigSensitivityChanged: Signal = attrs.field(init=False, factory=Signal, repr=False)
+    sigSpeedChanged: Signal = attrs.field(init=False, factory=Signal, repr=False)
     sigStateChanged: Signal = attrs.field(init=False, factory=Signal, repr=False)
     sigContactModeChanged: Signal = attrs.field(init=False, factory=Signal, repr=False)
     sigAirgapOffsetFromContactChanged: Signal = attrs.field(init=False, factory=Signal, repr=False)
@@ -251,6 +252,16 @@ class CobotConnectorClient:
 
     async def setSensitivity(self, sensitivity: float):
         await self._connector.callAsync_async('setSensitivity', sensitivity)
+
+    @property
+    def speed(self):
+        return self._connector.get('speed')
+
+    async def getSpeed(self) -> float:
+        return await self._connector.callAsync_async('getSpeed')
+
+    async def setSpeed(self, speed: float):
+        await self._connector.callAsync_async('setSpeed', speed)
 
     @property
     def isSimulated(self):

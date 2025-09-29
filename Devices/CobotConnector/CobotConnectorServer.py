@@ -126,6 +126,9 @@ class CobotConnectorServer:
     Note: sensitivity is only updated when also monitoring measured force
     """
 
+    _lastSpeed: float | None = attrs.field(init=False, default=None)
+    sigSpeedChanged: Signal = attrs.field(init=False, factory=Signal)
+
     _minContactTimeForStability: float = 5.  # in seconds
 
     _realignWhenDistErrorExceeds: float = 1.  # in mm
@@ -310,6 +313,7 @@ class CobotConnectorServer:
         for sig in (
             'sigMeasuredForceChanged',
             'sigSensitivityChanged',
+            'sigSpeedChanged',
             'sigTargetLabelChanged',
             'sigTargetAccessibleChanged',
             'sigStateChanged',
@@ -999,6 +1003,31 @@ class CobotConnectorServer:
         logger.info(f'Changing sensitivity to {newVal}')
         await self._cobotClient.setSensitivity(newVal)
         self.__lastSensitivity = await self._cobotClient.getSensitivity()
+
+    @property
+    def speed(self):
+        return self._lastSpeed
+
+    @property
+    def __lastSpeed(self):
+        return self._lastSpeed
+
+    @__lastSpeed.setter
+    def __lastSpeed(self, val: float | None):
+        if self._lastSpeed == val:
+            return
+        logger.debug(f'New speed: {val}')
+        self._lastSpeed = val
+        self.sigSpeedChanged.emit()
+
+    async def getSpeed(self) -> float:
+        self.__lastSpeed = await self._cobotClient.getSpeed()
+        return self.__lastSpeed
+
+    async def setSpeed(self, newVal: float):
+        logger.info(f'Changing speed to {newVal}')
+        await self._cobotClient.setSpeed(newVal)
+        self.__lastSpeed = await self._cobotClient.getSpeed()
 
     async def _loop_monitorForceSensor(self):
 

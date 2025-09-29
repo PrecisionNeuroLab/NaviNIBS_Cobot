@@ -1512,13 +1512,14 @@ class CobotSensitivityEntry(CobotStatusAndControlEntry):
 
     async def _getInitialValue(self):
         await self._controller.cobotClient.connectedToServerEvent.wait()
-        connectedEvt = asyncio.Event()
-        self._controller.cobotClient.sigConnectedChanged.connect(connectedEvt.set)
-        while True:
-            await connectedEvt.wait()
-            connectedEvt.clear()
-            if self._controller.cobotClient.isConnected:
-                break
+        if not self._controller.cobotClient.isConnected:
+            connectedEvt = asyncio.Event()
+            self._controller.cobotClient.sigConnectedChanged.connect(connectedEvt.set)
+            while True:
+                await connectedEvt.wait()
+                connectedEvt.clear()
+                if self._controller.cobotClient.isConnected:
+                    break
 
         await self._controller.cobotClient.getSensitivity()
         self._onValueChanged()
@@ -1539,10 +1540,97 @@ class CobotSensitivityEntry(CobotStatusAndControlEntry):
 
         self._valueLabel.setText(f'{val:.1f}')
 
+        self._slider.valueChanged.disconnect(self._onSliderChanged)
         self._slider.setValue(round(val / self._stepSize))
+        self._slider.valueChanged.connect(self._onSliderChanged)
 
     def _onSliderChanged(self):
         newVal = self._slider.value() * self._stepSize
         self._createTaskAndCatchExceptions(
             self._controller.cobotClient.setSensitivity(newVal))
 
+
+@attrs.define(kw_only=True)
+class CobotSpeedEntry(CobotStatusAndControlEntry):
+    _key: str = 'speed'
+    _stateChangedSignal: Signal | str = 'sigSpeedChanged'
+    _wdgt: QtWidgets.QWidget = attrs.field(init=False)
+    _stepSize: float = 1.
+    _minSpeed: float = 1.
+    _maxSpeed: float = 100.
+
+    _slider: QtWidgets.QSlider = attrs.field(init=False)
+    _minLabel: QtWidgets.QLabel = attrs.field(init=False)
+    _maxLabel: QtWidgets.QLabel = attrs.field(init=False)
+    _valueLabel: QtWidgets.QLabel = attrs.field(init=False)
+
+    _hasTriedToGetInitialValue: bool = attrs.field(init=False, default=False)
+
+    def __attrs_post_init__(self):
+
+        super().__attrs_post_init__()
+
+        self._wdgt = QtWidgets.QWidget()
+        layout = QtWidgets.QGridLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self._wdgt.setLayout(layout)
+
+        self._slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self._slider.setTracking(False)  # only trigger value change when user releases slider
+        self._slider.setMinimum(int(ceil(self._minSpeed / self._stepSize)))
+        self._slider.setMaximum(int(floor(self._maxSpeed / self._stepSize)))
+        self._slider.valueChanged.connect(self._onSliderChanged)
+        layout.addWidget(self._slider, 0, 0, 1, 3)
+
+        self._minLabel = QtWidgets.QLabel()
+        self._minLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignLeft | QtCore.Qt.AlignmentFlag.AlignTop)
+        self._minLabel.setText(f'{self._minSpeed}')
+        layout.addWidget(self._minLabel, 1, 0)
+
+        self._valueLabel = QtWidgets.QLabel()
+        self._valueLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignHCenter | QtCore.Qt.AlignmentFlag.AlignTop)
+        layout.addWidget(self._valueLabel, 1, 1)
+
+        self._maxLabel = QtWidgets.QLabel()
+        self._maxLabel.setAlignment(QtCore.Qt.AlignmentFlag.AlignRight | QtCore.Qt.AlignmentFlag.AlignTop)
+        self._maxLabel.setText(f'{self._maxSpeed}')
+        layout.addWidget(self._maxLabel, 1, 2)
+
+    async def _getInitialValue(self):
+        await self._controller.cobotClient.connectedToServerEvent.wait()
+        connectedEvt = asyncio.Event()
+        if not self._controller.cobotClient.isConnected:
+            self._controller.cobotClient.sigConnectedChanged.connect(connectedEvt.set)
+            while True:
+                await connectedEvt.wait()
+                connectedEvt.clear()
+                if self._controller.cobotClient.isConnected:
+                    break
+
+        await self._controller.cobotClient.getSpeed()
+        self._onValueChanged()
+
+    def _onValueChanged(self):
+        val = self._controller.cobotClient.speed
+
+        if val is None and not self._hasTriedToGetInitialValue:
+            asyncio.create_task(asyncTryAndLogExceptionOnError(self._getInitialValue))
+            self._hasTriedToGetInitialValue = True
+
+        if val is None:
+            self._valueLabel.setText('?')
+
+        if val is None:
+            # TODO: hide handle on slider
+            return
+
+        self._valueLabel.setText(f'{val:.1f}')
+
+        self._slider.valueChanged.disconnect(self._onSliderChanged)
+        self._slider.setValue(round(val / self._stepSize))
+        self._slider.valueChanged.connect(self._onSliderChanged)
+
+    def _onSliderChanged(self):
+        newVal = self._slider.value() * self._stepSize
+        self._createTaskAndCatchExceptions(
+            self._controller.cobotClient.setSpeed(newVal))
