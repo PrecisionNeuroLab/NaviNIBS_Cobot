@@ -1484,9 +1484,11 @@ class CobotSensitivityEntry(CobotStatusAndControlEntry):
         self._wdgt.setLayout(layout)
 
         self._slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self._slider.setTracking(False)  # only trigger value change when user releases slider
         self._slider.setMinimum(int(ceil(self._minSensitivity / self._stepSize)))
         self._slider.setMaximum(int(floor(self._maxSensitivity / self._stepSize)))
-        self._slider.sliderReleased.connect(self._onSliderChanged)  # use sliderReleased to avoid getting triggered by changes coming from cobot
+        self._slider.setPageStep(1)
+        self._slider.valueChanged.connect(self._onSliderChanged)  # use sliderReleased to avoid getting triggered by changes coming from cobot
         layout.addWidget(self._slider, 0, 0, 1, 3)
 
         self._minLabel = QtWidgets.QLabel()
