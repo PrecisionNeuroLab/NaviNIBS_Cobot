@@ -25,11 +25,11 @@ class CobotWorkspaceAlignedView(SinglePlotterNavigationView):
                       plotterLayer=plotLayer)
         plotLayer += 1
 
-        # self.addLayer(type='TargetingTargetCrosshairs', key='Target',
-        #               layeredPlotterKey='Crosshairs',
-        #               plotterLayer=plotLayer)
-        # self.addLayer(type='TargetingCoilCrosshairs', key='Coil', layeredPlotterKey='Crosshairs')
-        # plotLayer += 1
+        self.addLayer(type='TargetingTargetCrosshairs', key='Target',
+                      layeredPlotterKey='Crosshairs',
+                      plotterLayer=plotLayer)
+        self.addLayer(type='TargetingCoilCrosshairs', key='Coil', layeredPlotterKey='Crosshairs')
+        plotLayer += 1
 
         self.addLayer(type='ToolMeshSurface', key='Workspace',
                       toolKey='CobotWorkspace',
