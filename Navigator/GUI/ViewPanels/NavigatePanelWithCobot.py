@@ -238,7 +238,15 @@ class ContactControlsWidget:
 
         self._entries['currentForce'] = cw.CobotForceStatusEntry(
             controller=self._controller)
-        formLayout.addRow('Current force:', self._entries['currentForce'].wdgt)
+        self._entries['checkForce'] = cw.CobotCheckForceControlEntry(
+            controller=self._controller,
+        )
+        subcontainer = QtWidgets.QWidget()
+        subcontainer.setLayout(QtWidgets.QHBoxLayout())
+        subcontainer.layout().setContentsMargins(0, 0, 0, 0)
+        subcontainer.layout().addWidget(self._entries['currentForce'].wdgt)
+        subcontainer.layout().addWidget(self._entries['checkForce'].wdgt)
+        formLayout.addRow('Current force:', subcontainer)
 
         self._entries['contact'] = cw.CobotContactControlEntry(
             controller=self._controller)
