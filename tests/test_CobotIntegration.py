@@ -212,6 +212,8 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
 
     sessionPath = utils.copySessionFolder(workingDir, 'CobotSetup', 'CobotNavigation')
 
+    await asyncio.sleep(2.)  # give time for any previous connection to finish closing
+
     # open session
     navigatorGUI.manageSessionPanel.loadSession(sesFilepath=sessionPath)
 
@@ -232,7 +234,7 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
     navigatorGUI._rootDockArea.moveDock(navigatorGUI.cameraPanel.dockWdgt,
                                         'left', cobotNavPanel.dockWdgt)
 
-    navigatorGUI.cameraPanel.dockWdgt.setStretch(x=3, y=10)
+    navigatorGUI.cameraPanel.dockWdgt.setStretch(x=5, y=10)
 
     # resize window to smaller size so that screenshots are more readable when used in documentation
     navigatorGUIWithoutSession._win.resize(QtCore.QSize(1600, 900))
@@ -356,7 +358,7 @@ async def test_cobotNavigation(navigatorGUIWithoutSession: NavigatorGUI,
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason='For troubleshooting')
+# @pytest.mark.skip(reason='For troubleshooting')
 async def test_openCobotNavSession(workingDir):
     await utils.openSessionForInteraction(workingDir, 'CobotNavigation')
 
